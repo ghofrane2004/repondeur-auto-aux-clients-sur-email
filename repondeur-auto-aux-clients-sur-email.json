@@ -1,0 +1,167 @@
+{
+  "name": "repondeur auto au clients sur email",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        128
+      ],
+      "id": "d259552b-7620-4b49-911b-ba0099dd51ec",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2U1hXXFVVseSs0HH",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tu es un assistant service client professionnel.\nTu dois répondre de manière claire, rassurante et polie aux emails suivants.\n\nVoici un email client :\n----\npremierement fait un salut a {{ $json.From }}\n----\n\nTa réponse doit :\n- Utiliser un ton courtois et rassurant\n- Proposer une solution si possible\n- Signer avec “Cordialement, L’équipe support”\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2f883a5e-b857-4c82-afc9-ebf54212adc6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        224
+      ],
+      "id": "474abc9d-9fd6-4ad1-9a26-544abe26b49c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "59K2o9CWY6sIHcBY",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        400,
+        176
+      ],
+      "id": "57eea5c5-1eca-496e-9c7c-2196d80c4903",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.To }}",
+        "subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        176
+      ],
+      "id": "9f62aa39-2247-475e-947b-929b4d63b578",
+      "name": "Send a message",
+      "webhookId": "53dbd84e-7e1e-4823-ad45-2e33f1451620",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2U1hXXFVVseSs0HH",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c5ca7aef-a2ca-4b88-b5eb-eab3894d2ee3",
+  "meta": {
+    "instanceId": "84eff7e194c3d1f34e2e3c00ad30a8975c3f40225ac3fc4b20c8fc414de09a3b"
+  },
+  "id": "gbU8CNJdwYvu5XtH",
+  "tags": []
+}
